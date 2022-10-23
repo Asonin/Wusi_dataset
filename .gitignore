@@ -8,5 +8,5 @@ mocap/train_3_120_mocap.npy
 mocap/two_test_4seconds_2.npy
 mocap/two_train_4seconds_2.npy
 saved_model/
-
+save_results
 

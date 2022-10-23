@@ -15,7 +15,7 @@ import os
 
 from data import TESTDATA
 
-dataset_name='mupots'
+dataset_name='mocap'
 
 test_dataset = TESTDATA(dataset=dataset_name)
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
@@ -23,6 +23,8 @@ test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffl
 device='cpu'
 
 batch_size=1
+save_path = 'save_results/'
+
 
 
 model = Transformer(d_word_vec=128, d_model=128, d_inner=1024,
@@ -31,11 +33,11 @@ model = Transformer(d_word_vec=128, d_model=128, d_inner=1024,
 
 
 
-plot=False
+plot=True
 gt=False
 
 
-model.load_state_dict(torch.load('./saved_model/29.model',map_location=device)) 
+model.load_state_dict(torch.load('./saved_model/29_d.model',map_location=device)) 
 
 
 body_edges = np.array(
@@ -110,7 +112,6 @@ with torch.no_grad():
         
         new_new_rec_=model.forward(new_new_input[:,1:,:]-new_new_input[:,:-1,:],dct.idct(new_new_input[:,-1:,:]),new_new_input_seq,use)
 
-
         new_new_rec=dct.idct(new_new_rec_)
         rec=torch.cat([rec,new_new_rec],dim=-2)
 
@@ -139,7 +140,6 @@ with torch.no_grad():
             # loss2=torch.sqrt((((prediction_2 - prediction_2[:,:,0:1,:] - gt_2 + gt_2[:,:,0:1,:])/1.8) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
             # loss3=torch.sqrt((((prediction_3 - prediction_3[:,:,0:1,:] - gt_3 + gt_3[:,:,0:1,:])/1.8) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
 
-
         if dataset_name=='mupots':
             loss1=torch.sqrt(((prediction_1 - gt_1) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
             loss2=torch.sqrt(((prediction_2 - gt_2) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
@@ -150,7 +150,6 @@ with torch.no_grad():
             # loss2=torch.sqrt(((prediction_2 - prediction_2[:,:,0:1,:] - gt_2 + gt_2[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
             # loss3=torch.sqrt(((prediction_3 - prediction_3[:,:,0:1,:] - gt_3 + gt_3[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
 
-        
         loss_list1.append(np.mean(loss1))#+loss1
         loss_list2.append(np.mean(loss2))#+loss2
         loss_list3.append(np.mean(loss3))#+loss3
@@ -158,7 +157,6 @@ with torch.no_grad():
         loss=torch.mean((rec[:,:,:]-(output_[:,1:46,:]-output_[:,:45,:]))**2)
         losses.append(loss)
         
-
         rec=results[:,:,:]
         
         rec=rec.reshape(results.shape[0],-1,n_joints,3)
@@ -168,17 +166,15 @@ with torch.no_grad():
         output_seq=output_seq.view(results.shape[0],-1,n_joints,3)[:,1:,:,:]
         all_seq=torch.cat([input_seq,output_seq],dim=1)
         
-
         pred=pred[:,:,:,:].cpu()
         all_seq=all_seq[:,:,:,:].cpu()
-        
         
         if plot:
             fig = plt.figure(figsize=(10, 4.5))
             fig.tight_layout()
             ax = fig.add_subplot(111, projection='3d')
             
-            plt.ion()
+            # plt.ion()
             
             length=45+15
             length_=45+15
@@ -187,7 +183,6 @@ with torch.no_grad():
             p_x=np.linspace(-10,10,15)
             p_y=np.linspace(-10,10,15)
             X,Y=np.meshgrid(p_x,p_y)
-            
             
             while i < length_:
                 
@@ -222,7 +217,6 @@ with torch.no_grad():
                     
                     
                         ax.plot( z,x, y, 'y.')
-
 
                     plot_edge=True
                     if plot_edge:
@@ -265,15 +259,16 @@ with torch.no_grad():
                     plt.title(str(i),y=-0.1)
                 plt.pause(0.1)
                 i += 1
+                filename = save_path + str(i)
+                plt.savefig(filename)
 
             
-            plt.ioff()
-            plt.show()
+            # plt.ioff()
+            # plt.show()
+            plt.savefig(filename)
             plt.close()
 
             
-
-
     print('avg 1 second',np.mean(loss_list1))
     print('avg 2 seconds',np.mean(loss_list2))
     print('avg 3 seconds',np.mean(loss_list3))
