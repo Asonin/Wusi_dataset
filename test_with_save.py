@@ -1,62 +1,50 @@
+from lib2to3.pytree import Base
+from locale import bind_textdomain_codeset
 import torch
 import numpy as np
 import torch_dct as dct
 import time
 from MRT.Models import Transformer
-
-
-
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
-
 import numpy as np
 import os
-
 from data import TESTDATA
+import ffmpeg
 
 dataset_name='mocap'
-
 test_dataset = TESTDATA(dataset=dataset_name)
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
-
 device='cpu'
-
 batch_size=1
-save_path = 'save_results/'
-
-
-
 model = Transformer(d_word_vec=128, d_model=128, d_inner=1024,
             n_layers=3, n_head=8, d_k=64, d_v=64,device=device).to(device)
-
-
-
-
 plot=True
-gt=False
-
-
+gt=True
 model.load_state_dict(torch.load('./saved_model/29_d.model',map_location=device)) 
-
 
 body_edges = np.array(
 [[0,1], [1,2],[2,3],[0,4],
 [4,5],[5,6],[0,7],[7,8],[7,9],[9,10],[10,11],[7,12],[12,13],[13,14]]
 )
 
-
 losses=[]
-
 total_loss=0
 loss_list1=[]
 loss_list2=[]
 loss_list3=[]
+
+base_dir = 'save_results/'
+if not os.path.exists(base_dir):
+    os.mkdir(base_dir)
 with torch.no_grad():
     model.eval()
     loss_list=[]
     for jjj,data in enumerate(test_dataloader,0):
         print(jjj)
+        folder_dir = base_dir + str(jjj) + '/'
+        if not os.path.exists(folder_dir):
+            os.mkdir(folder_dir)
         #if jjj!=20:
         #    continue
         input_seq,output_seq=data
@@ -175,7 +163,6 @@ with torch.no_grad():
             ax = fig.add_subplot(111, projection='3d')
             
             # plt.ion()
-            
             length=45+15
             length_=45+15
             i=0
@@ -258,15 +245,28 @@ with torch.no_grad():
                     #ax.set_zlabel("z")
                     plt.title(str(i),y=-0.1)
                 plt.pause(0.1)
-                i += 1
-                filename = save_path + str(i)
+                prefix = '{:02}'.format(i)
+                filename = folder_dir + prefix
                 plt.savefig(filename)
+                
+                i += 1
 
-            
+
             # plt.ioff()
             # plt.show()
             plt.savefig(filename)
             plt.close()
+            
+        pics_3d = folder_dir + '/%2d.png'
+        out_dir_3d = base_dir + f'/{jjj}_3d.mp4'
+        if os.path.exists(out_dir_3d):
+            continue
+        (
+            ffmpeg
+            .input(pics_3d, framerate=15)
+            .output(out_dir_3d)
+            .run()
+        )
 
             
     print('avg 1 second',np.mean(loss_list1))
