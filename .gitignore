@@ -1,0 +1,12 @@
+mocap/all_asfamc
+mocap/kk
+mocap/discriminator_3_120_mocap.npy
+mocap/one_test_4seconds_30.npy
+mocap/one_train_4seconds_30.npy
+mocap/test_3_120_mocap.npy
+mocap/train_3_120_mocap.npy
+mocap/two_test_4seconds_2.npy
+mocap/two_train_4seconds_2.npy
+saved_model/
+
+
