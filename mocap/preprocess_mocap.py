@@ -29,14 +29,14 @@ for ii in range(4):
     for each in sorted(os.listdir('./all_asfamc/subjects/'+A+'/')):
         if each[-3:]!='amc':
             continue
-        print(each)
+        # print(each)
         amc_path = './all_asfamc/subjects/'+A+'/'+each
         joints = parse_asf(asf_path)
         motions = parse_amc(amc_path)
         length=len(motions)
         
         if (iii%4==1) and (ii!=3): #just an example
-            print('test')
+            # print('test')
             motion_list_A=[]
             for i in range(0,length,4):
                 frame_idx = i
@@ -47,6 +47,7 @@ for ii in range(4):
                         joint.coordinate[1],joint.coordinate[2]]).squeeze(1)
                     joints_list.append(xyz)
                 motion_list_A.append(np.array(joints_list))
+                # print(np.array(joints_list).shape)
             motion_list_A_test.append(motion_list_A)
         
 
@@ -54,7 +55,7 @@ for ii in range(4):
             if ii==3 and iii%4==1:
                 continue
             
-            print('train')
+            # print('train')
             motion_list_A=[]
             for i in range(0,length,4):
                 frame_idx = i
@@ -76,14 +77,14 @@ for ii in range(4):
     for each in sorted(os.listdir('./all_asfamc/subjects/'+B+'/')):
         if each[-3:]!='amc':
             continue
-        print(each)
+        # print(each)
         amc_path_2 = './all_asfamc/subjects/'+B+'/'+each
         joints_2 = parse_asf(asf_path_2)
         motions_2 = parse_amc(amc_path_2)
         length=len(motions_2)
         
         if (iii%4==1) and (ii!=3):
-            print('test')
+            # print('test')
             motion_list_B=[]
             for i in range(0,length,4):
                 frame_idx = i
@@ -100,7 +101,7 @@ for ii in range(4):
             if ii==3 and iii%4==1:
                 continue
             
-            print('train')
+            # print('train')
             motion_list_B=[]
             for i in range(0,length,4):
                 frame_idx = i
@@ -123,7 +124,7 @@ for ii in range(4):
         motion_list_B=np.array(motion_list_B_All[i])
         #print(motion_list_A.shape[0])
         for j in range(0,motion_list_A.shape[0],2):
-            
+            print(j)
             if j+120>motion_list_A.shape[0]:
                 break
             A_=np.expand_dims(np.array(motion_list_A[j:j+120]),0)
@@ -132,6 +133,7 @@ for ii in range(4):
             data.append(motion)
 
     scene_length=len(motion_list_B_test)
+    # print(scene_length)
     for i in range(scene_length):
         motion_list_A=np.array(motion_list_A_test[i])
         motion_list_B=np.array(motion_list_B_test[i])
@@ -143,11 +145,13 @@ for ii in range(4):
             A_=np.expand_dims(np.array(motion_list_A[j:j+120]),0) # 120: 30 fps, 4 seconds
             B_=np.expand_dims(np.array(motion_list_B[j:j+120]),0)
             motion=np.concatenate([A_,B_])
+            # print(motion.shape)
             test_data.append(motion)
-    print(ii)
+    # print(ii)
 
-np.save('two_train_4seconds_2.npy',np.array(data))
-np.save('two_test_4seconds_2.npy',np.array(test_data))
+# np.save('two_train_4seconds_2.npy',np.array(data))
+# np.save('two_test_4seconds_2.npy',np.array(test_data))
+# print(np.array(test_data).shape)
 
 ########################################################################
 
@@ -169,7 +173,7 @@ for ii in sorted(os.listdir('./all_asfamc/subjects/')):
         motions = parse_amc(amc_path)
         length=len(motions)
         if iii%4!=1:
-            print('train')
+            # print('train')
             motion_list_A=[]
             for i in range(0,length,4):
                 frame_idx = i
@@ -182,7 +186,7 @@ for ii in sorted(os.listdir('./all_asfamc/subjects/')):
                 motion_list_A.append(np.array(joints_list))
             motion_list_A_All.append(motion_list_A)
         else:
-            print('test')
+            # print('test')
             motion_list_A=[]
             for i in range(0,length,4):
                 frame_idx = i
@@ -207,14 +211,15 @@ for ii in sorted(os.listdir('./all_asfamc/subjects/')):
     scene_length=len(motion_list_A_test)
     for i in range(scene_length):
         motion_list_A=np.array(motion_list_A_test[i])
+        # print(motion_list_A.shape)
         for j in range(0,motion_list_A.shape[0],30):
             if (j+120)>motion_list_A.shape[0]:
                 break
             A=np.expand_dims(np.array(motion_list_A[j:j+120]),0)            
             test_data.append(A)
-    print(ii)
-np.save('one_train_4seconds_30.npy',np.array(data))
-np.save('one_test_4seconds_30.npy',np.array(test_data))
+    # print(ii)
+# np.save('one_train_4seconds_30.npy',np.array(data))
+# np.save('one_test_4seconds_30.npy',np.array(test_data))
 
 
 #use mix_mocap.py to mix two subjects and one subject

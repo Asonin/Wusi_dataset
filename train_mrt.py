@@ -1,3 +1,4 @@
+# from importlib.metadata import requires
 import torch
 import torch.optim as optim
 import numpy as np
@@ -9,6 +10,7 @@ from utils import disc_l2_loss,adv_disc_l2_loss
 from torch.autograd import Variable
 import torch.nn as nn
 from torch.nn import init
+import os
 
 
 
@@ -25,8 +27,9 @@ real_motion_dataloader = torch.utils.data.DataLoader(real_, batch_size=batch_siz
 real_motion_all=list(enumerate(real_motion_dataloader))
 
 device='cuda'
-
-
+# os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model = Transformer(d_word_vec=128, d_model=128, d_inner=1024,
             n_layers=3, n_head=8, d_k=64, d_v=64,device=device).to(device)
@@ -47,6 +50,7 @@ params_d = [
 optimizer_d = optim.Adam(params_d)
 
 
+
 for epoch in range(100):
     total_loss=0
     
@@ -55,7 +59,10 @@ for epoch in range(100):
         use=None
         input_seq,output_seq=data
         input_seq=torch.tensor(input_seq,dtype=torch.float32).to(device) # batch, N_person, 15 (15 fps 1 second), 45 (15joints xyz) 
+        # input_seq = input_seq.clone().detach().requires_grad_(True).to(device)
+        
         output_seq=torch.tensor(output_seq,dtype=torch.float32).to(device) # batch, N_persons, 46 (last frame of input + future 3 seconds), 45 (15joints xyz) 
+        # output_seq = output_seq.clone().detach().requires_grad_(True).to(device)
         
         # first 1 second predict future 1 second
         input_=input_seq.view(-1,15,input_seq.shape[-1]) # batch x n_person ,15: 15 fps, 1 second, 45: 15joints x 3
@@ -72,13 +79,17 @@ for epoch in range(100):
         new_input=torch.cat([input_[:,1:15,:]-input_[:,:14,:],dct.dct(rec_)],dim=-2)
         
         new_input_seq=torch.cat([input_seq,output_seq[:,:,1:16]],dim=-2)
+        # print(new_input_seq.shape)
         new_input_=dct.dct(new_input_seq.reshape(-1,30,45))
+        # print(new_input_.shape)
         new_rec_=model.forward(new_input_[:,1:,:]-new_input_[:,:29,:],dct.idct(new_input_[:,-1:,:]),new_input_seq,use)
 
         new_rec=dct.idct(new_rec_)
 
         # first 3 seconds predict 1 second
+        # print(input_seq.shape, output_seq.shape)
         new_new_input_seq=torch.cat([input_seq,output_seq[:,:,1:31]],dim=-2)
+        # print(new_new_input_seq.shape)
         new_new_input_=dct.dct(new_new_input_seq.reshape(-1,45,45))
         new_new_rec_=model.forward(new_new_input_[:,1:,:]-new_new_input_[:,:44,:],dct.idct(new_new_input_[:,-1:,:]),new_new_input_seq,use)
 
@@ -90,7 +101,7 @@ for epoch in range(100):
         for i in range(1,31+15):
             results=torch.cat([results,output_[:,:1,:]+torch.sum(rec[:,:i,:],dim=1,keepdim=True)],dim=1)
         results=results[:,1:,:]
-      
+        # print(output_.shape)
         loss=torch.mean((rec[:,:,:]-(output_[:,1:46,:]-output_[:,:45,:]))**2)
         
         
@@ -117,6 +128,7 @@ for epoch in range(100):
         
        
         optimizer.zero_grad()
+        torch.autograd.set_detect_anomaly(True)
         loss.backward()
         optimizer.step()
  
@@ -124,7 +136,7 @@ for epoch in range(100):
 
     print('epoch:',epoch,'loss:',total_loss/(j+1))
     if (epoch+1)%5==0:
-        save_path=f'./saved_model/{epoch}.model'
+        save_path=f'./saved_model_wusi/{epoch}.model'
         torch.save(model.state_dict(),save_path)
 
 

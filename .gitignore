@@ -9,4 +9,9 @@ mocap/two_test_4seconds_2.npy
 mocap/two_train_4seconds_2.npy
 saved_model/
 save_results
-
+output/wusi/
+output/wusi_nocut/
+output/data.npy
+output/*.npy
+saved_model_wusi/
+/*pyc.

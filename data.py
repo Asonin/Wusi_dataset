@@ -5,7 +5,8 @@ import numpy as np
 class DATA(data.Dataset):
     def __init__(self):
         
-        self.data=np.load('./mocap/train_3_120_mocap.npy',allow_pickle=True)
+        # self.data=np.load('./mocap/train_3_120_mocap.npy',allow_pickle=True)
+        self.data=np.load('./output/train_wusi.npy',allow_pickle=True)
         
         self.len=len(self.data)
         
@@ -37,7 +38,9 @@ class TESTDATA(data.Dataset):
         
         if dataset=='mocap':
             self.data=np.load('./mocap/test_3_120_mocap.npy',allow_pickle=True)
-            
+        
+        if dataset=='wusi':
+            self.data=np.load('./output/test_wusi.npy',allow_pickle=True)
         
             # use=[0,1,2,3,6,7,8,14,16,17,18,20,24,25,27]
             # self.data=self.data
