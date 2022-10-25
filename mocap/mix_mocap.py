@@ -31,11 +31,16 @@ for i in range(6000):
         one_person[:,:,:,[0,2]]=one_person[:,:,:,[0,2]]+np.array([np.random.randint(-50,50),np.random.randint(-50,50)])
         temp=np.concatenate([one_person,two_person]) 
         #put the whole scene into the center
+        print(temp.shape)
+        # print(temp)
+        print(np.mean(temp[:,:,:,0]))
         temp[:,:,:,0]=temp[:,:,:,0]-np.mean(temp[:,:,:,0])
+        print(temp[0,0,:,1])
         temp[:,:,:,2]=temp[:,:,:,2]-np.mean(temp[:,:,:,2]) 
+        # print(temp)
         temp=temp.reshape(3,120,-1) 
         data.append(temp)
-
+        quit()
     #3000 sequences have 3 single subject
     else:
         one_person_1=one_train[one_1[i-3000]]
