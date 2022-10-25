@@ -116,6 +116,7 @@ def divide_data(ori_data, ratio):
     data = data.reshape(data.shape[0],5,-1,45)
     print('testing set length = ',data.shape)
     np.save(f'test.npy',data)
+    
 
 
 if __name__ == '__main__':

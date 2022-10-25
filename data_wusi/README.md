@@ -31,7 +31,7 @@ For data_wusi, the dictionary tree is like
 
 ## process_wusi.py
 This script reads the raw data and cut them up into sequences, you can specify the sequence length by argument _sequence_len_ and stride by the argument _stride_. 
-After processing the raw data, it shall tell you the sequence number and sequence length. Then, processed data will be divided into training and testing set. You could specify the ratio of training dataset by argument _ratio_, the remaining should automatically become testing set.
+After processing the raw data, it shall tell you the sequence number and sequence length. Then, processed data will be divided into training and testing set. You could specify the ratio of training dataset by argument _ratio_, the remaining should automatically become test set.
 
 ### Enter folder data_wusi/, please then try
 ```
