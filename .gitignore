@@ -19,4 +19,5 @@ saved_model_wusi/
 saved_model_wusi_old/
 __pycache__/ 
 */__pycache__
+/save_results_wusi_79
 /save_results_wusi
