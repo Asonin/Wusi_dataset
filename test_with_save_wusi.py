@@ -12,6 +12,10 @@ import os
 from data import TESTDATA
 import ffmpeg
 
+
+# colors for visualization
+colors = ['b', 'g', 'c', 'y', 'm', 'orange', 'pink', 'royalblue', 'lightgreen', 'gold']
+
 dataset_name='wusi'
 test_dataset = TESTDATA(dataset=dataset_name)
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
@@ -42,9 +46,10 @@ with torch.no_grad():
     loss_list=[]
     for jjj,data in enumerate(test_dataloader,0):
         print(jjj)
-        folder_dir = base_dir + str(jjj) + '/'
-        if not os.path.exists(folder_dir):
-            os.mkdir(folder_dir)
+        if jjj%5==0:
+            folder_dir = base_dir + str(jjj) + '/'
+            if not os.path.exists(folder_dir):
+                os.mkdir(folder_dir)
         #if jjj!=20:
         #    continue
         input_seq,output_seq=data
@@ -63,26 +68,26 @@ with torch.no_grad():
         output__ = dct.dct(output_[:,:,:])
         
         
-        rec_=model.forward(input_[:,1:15,:]-input_[:,:14,:],dct.idct(input_[:,-1:,:]),input_seq,use)
+        rec_=model.forward(input_[:,1:25,:]-input_[:,:24,:],dct.idct(input_[:,-1:,:]),input_seq,use)
         
         rec=dct.idct(rec_)
 
         results=output_[:,:1,:]
-        for i in range(1,16):
+        for i in range(1,26):
             results=torch.cat([results,output_[:,:1,:]+torch.sum(rec[:,:i,:],dim=1,keepdim=True)],dim=1)
         results=results[:,1:,:]
 
         new_input_seq=torch.cat([input_seq,results.reshape(input_seq.shape)],dim=-2)
-        new_input=dct.dct(new_input_seq.reshape(-1,30,45))
+        new_input=dct.dct(new_input_seq.reshape(-1,50,45))
         
         new_rec_=model.forward(new_input[:,1:,:]-new_input[:,:-1,:],dct.idct(new_input[:,-1:,:]),new_input_seq,use)
         
         
         new_rec=dct.idct(new_rec_)
         
-        new_results=new_input_seq.reshape(-1,30,45)[:,-1:,:]
-        for i in range(1,16):
-            new_results=torch.cat([new_results,new_input_seq.reshape(-1,30,45)[:,-1:,:]+torch.sum(new_rec[:,:i,:],dim=1,keepdim=True)],dim=1)
+        new_results=new_input_seq.reshape(-1,50,45)[:,-1:,:]
+        for i in range(1,26):
+            new_results=torch.cat([new_results,new_input_seq.reshape(-1,50,45)[:,-1:,:]+torch.sum(new_rec[:,:i,:],dim=1,keepdim=True)],dim=1)
         new_results=new_results[:,1:,:]
         
         results=torch.cat([results,new_results],dim=-2)
@@ -91,12 +96,12 @@ with torch.no_grad():
 
         results=output_[:,:1,:]
 
-        for i in range(1,16+15):
+        for i in range(1,26+25):
             results=torch.cat([results,output_[:,:1,:]+torch.sum(rec[:,:i,:],dim=1,keepdim=True)],dim=1)
         results=results[:,1:,:]
 
         new_new_input_seq=torch.cat([input_seq,results.unsqueeze(0)],dim=-2)
-        new_new_input=dct.dct(new_new_input_seq.reshape(-1,45,45))
+        new_new_input=dct.dct(new_new_input_seq.reshape(-1,75,45))
         
         new_new_rec_=model.forward(new_new_input[:,1:,:]-new_new_input[:,:-1,:],dct.idct(new_new_input[:,-1:,:]),new_new_input_seq,use)
 
@@ -105,17 +110,17 @@ with torch.no_grad():
 
         results=output_[:,:1,:]
 
-        for i in range(1,31+15):
+        for i in range(1,51+25):
             results=torch.cat([results,output_[:,:1,:]+torch.sum(rec[:,:i,:],dim=1,keepdim=True)],dim=1)
         results=results[:,1:,:]
         
-        prediction_1=results[:,:15,:].view(results.shape[0],-1,n_joints,3)
-        prediction_2=results[:,:30,:].view(results.shape[0],-1,n_joints,3)
-        prediction_3=results[:,:45,:].view(results.shape[0],-1,n_joints,3)
+        prediction_1=results[:,:25,:].view(results.shape[0],-1,n_joints,3)
+        prediction_2=results[:,:50,:].view(results.shape[0],-1,n_joints,3)
+        prediction_3=results[:,:75,:].view(results.shape[0],-1,n_joints,3)
 
-        gt_1=output_seq[0][:,1:16,:].view(results.shape[0],-1,n_joints,3)
-        gt_2=output_seq[0][:,1:31,:].view(results.shape[0],-1,n_joints,3)
-        gt_3=output_seq[0][:,1:46,:].view(results.shape[0],-1,n_joints,3)
+        gt_1=output_seq[0][:,1:26,:].view(results.shape[0],-1,n_joints,3)
+        gt_2=output_seq[0][:,1:51,:].view(results.shape[0],-1,n_joints,3)
+        gt_3=output_seq[0][:,1:76,:].view(results.shape[0],-1,n_joints,3)
 
         if dataset_name=='mocap':
             #match the scale with the paper, also see line 63 in mix_mocap.py
@@ -147,14 +152,14 @@ with torch.no_grad():
         loss_list2.append(np.mean(loss2))#+loss2
         loss_list3.append(np.mean(loss3))#+loss3
         
-        loss=torch.mean((rec[:,:,:]-(output_[:,1:46,:]-output_[:,:45,:]))**2)
+        loss=torch.mean((rec[:,:,:]-(output_[:,1:76,:]-output_[:,:75,:]))**2)
         losses.append(loss)
         
         rec=results[:,:,:]
         
         rec=rec.reshape(results.shape[0],-1,n_joints,3)
         
-        input_seq=input_seq.view(results.shape[0],15,n_joints,3)
+        input_seq=input_seq.view(results.shape[0],25,n_joints,3)
         pred=torch.cat([input_seq,rec],dim=1)
         output_seq=output_seq.view(results.shape[0],-1,n_joints,3)[:,1:,:,:]
         all_seq=torch.cat([input_seq,output_seq],dim=1)
@@ -162,18 +167,18 @@ with torch.no_grad():
         pred=pred[:,:,:,:].cpu()
         all_seq=all_seq[:,:,:,:].cpu()
         
-        if plot:
+        if plot and jjj % 5 == 0:
             fig = plt.figure(figsize=(10, 4.5))
-            fig.tight_layout()
+            # fig.tight_layout()
             ax = fig.add_subplot(111, projection='3d')
             
             # plt.ion()
-            length=45+15
-            length_=45+15
+            length=100
+            length_=100
             i=0
 
-            p_x=np.linspace(-10,10,15)
-            p_y=np.linspace(-10,10,15)
+            p_x=np.linspace(-10,10,25)
+            p_y=np.linspace(-10,10,25)
             X,Y=np.meshgrid(p_x,p_y)
             
             while i < length_:
@@ -195,12 +200,12 @@ with torch.no_grad():
                 for j in range(results.shape[0]):
                     
                     xs=pred[j,i,:,0].numpy()
-                    print(xs)
+                    # print(xs)
                     ys=pred[j,i,:,1].numpy()
                     zs=pred[j,i,:,2].numpy()
                     
                     alpha=1
-                    ax.plot( zs,xs, ys, 'y.',alpha=alpha)
+                    ax.plot( xs, ys,zs, 'y.',alpha=alpha)
                     
                     if gt:
                         x=all_seq[j,i,:,0].numpy()
@@ -209,7 +214,7 @@ with torch.no_grad():
                         z=all_seq[j,i,:,2].numpy()
                     
                     
-                        ax.plot( z,x, y, 'y.')
+                        ax.plot( x, y, z, 'y.')
 
                     plot_edge=True
                     if plot_edge:
@@ -218,10 +223,10 @@ with torch.no_grad():
                             y=[pred[j,i,edge[0],1],pred[j,i,edge[1],1]]
                             z=[pred[j,i,edge[0],2],pred[j,i,edge[1],2]]
                             if i>=15:
-                                ax.plot(z,x, y, zdir='z',c='blue',alpha=alpha)
+                                ax.plot(x, y, z,zdir='z',c='blue',alpha=alpha)
                                 
                             else:
-                                ax.plot(z,x, y, zdir='z',c='green',alpha=alpha)
+                                ax.plot(x, y, z,zdir='z',c='green',alpha=alpha)
                             
                             if gt:
                                 x=[all_seq[j,i,edge[0],0],all_seq[j,i,edge[1],0]]
@@ -229,14 +234,14 @@ with torch.no_grad():
                                 z=[all_seq[j,i,edge[0],2],all_seq[j,i,edge[1],2]]
                             
                                 if i>=15:
-                                    ax.plot( z,x, y, 'yellow',alpha=0.8)
+                                    ax.plot( x, y, z,'yellow',alpha=0.8)
                                 else:
-                                    ax.plot( z, x, y, 'green')
+                                    ax.plot(  x, y, z,'green')
                             
                    
-                    ax.set_xlim3d([-3 , 3])
-                    ax.set_ylim3d([-3 , 3])
-                    ax.set_zlim3d([0,3])
+                    ax.set_xlim3d([-2 , 5])
+                    ax.set_ylim3d([-4 , 3])
+                    ax.set_zlim3d([0,4])
                     # ax.set_xlim3d([-8 , 8])
                     # ax.set_ylim3d([-8 , 8])
                     # ax.set_zlim3d([0,5])
@@ -263,16 +268,16 @@ with torch.no_grad():
             plt.savefig(filename)
             plt.close()
             
-        pics_3d = folder_dir + '/%2d.png'
-        out_dir_3d = base_dir + f'/{jjj}_3d.mp4'
-        if os.path.exists(out_dir_3d):
-            continue
-        (
-            ffmpeg
-            .input(pics_3d, framerate=15)
-            .output(out_dir_3d)
-            .run()
-        )
+            pics_3d = folder_dir + '/%2d.png'
+            out_dir_3d = base_dir + f'/{jjj}_3d.mp4'
+            if os.path.exists(out_dir_3d):
+                continue
+            (
+                ffmpeg
+                .input(pics_3d, framerate=25)
+                .output(out_dir_3d)
+                .run()
+            )
 
             
     print('avg 1 second',np.mean(loss_list1))
