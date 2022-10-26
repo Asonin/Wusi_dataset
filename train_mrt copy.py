@@ -76,6 +76,7 @@ for epoch in range(100):
 
         # first 2 seconds predict 1 second
         new_input=torch.cat([input_[:,1:15,:]-input_[:,:14,:],dct.dct(rec_)],dim=-2)
+        print(input_.shape)
         
         new_input_seq=torch.cat([input_seq,output_seq[:,:,1:16]],dim=-2)
         # print(new_input_seq.shape)

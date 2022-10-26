@@ -16,12 +16,12 @@ dataset_name='wusi'
 test_dataset = TESTDATA(dataset=dataset_name)
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 device='cpu'
-batch_size=1
+batch_size=32
 model = Transformer(d_word_vec=128, d_model=128, d_inner=1024,
             n_layers=3, n_head=8, d_k=64, d_v=64,device=device).to(device)
 plot=True
 gt=True
-model.load_state_dict(torch.load('./saved_model_wusi_old/79.model',map_location=device)) 
+model.load_state_dict(torch.load('./saved_model_wusi/79.model',map_location=device)) 
 
 body_edges = np.array(
 [[0,1], [1,2],[2,3],[0,4],
@@ -48,14 +48,13 @@ with torch.no_grad():
         #if jjj!=20:
         #    continue
         input_seq,output_seq=data
-        
-        input_seq=torch.tensor(input_seq,dtype=torch.float32).to(device)
-        output_seq=torch.tensor(output_seq,dtype=torch.float32).to(device)
+        input_seq=torch.tensor(input_seq,dtype=torch.float32).to(device) # 1,5,25,45
+        output_seq=torch.tensor(output_seq,dtype=torch.float32).to(device) # 1,5,76,45
         n_joints=int(input_seq.shape[-1]/3)
         # print(n_joints)
         use=[input_seq.shape[1]]
         
-        input_=input_seq.view(-1,15,input_seq.shape[-1])
+        input_=input_seq.view(-1,25,input_seq.shape[-1])
   
     
         output_=output_seq.view(output_seq.shape[0]*output_seq.shape[1],-1,input_seq.shape[-1])

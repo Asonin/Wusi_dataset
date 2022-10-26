@@ -95,6 +95,7 @@ def divide_data(ori_data, ratio):
     data=data.reshape(data.shape[0],5,-1,45)
     print('tarining set length = ',data.shape)
     np.save(f'training.npy',data)
+    np.save(f'discriminator.npy',data)
 
     # quit()
     # ###########################################################################

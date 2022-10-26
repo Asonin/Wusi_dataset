@@ -25,11 +25,8 @@ class PositionalEncoding(nn.Module):
 
         # Not a parameter
         self.register_buffer('pos_table', self._get_sinusoid_encoding_table(n_position, d_hid))
-        # # # print('pos_table.shape', self.pos_table.shape)
         self.register_buffer('pos_table2', self._get_sinusoid_encoding_table(n_position, d_hid))
         # self.register_buffer('pos_table3', self._get_sinusoid_encoding_table(n_position, d_hid))
-        
-        
     def _get_sinusoid_encoding_table(self, n_position, d_hid):
         ''' Sinusoid position encoding table '''
         
@@ -44,11 +41,6 @@ class PositionalEncoding(nn.Module):
 
     def forward(self,x,n_person):
         p=self.pos_table[:,:x.size(1)].clone().detach()
-        # print('pos_table', self.pos_table.shape)
-        # print('x.shape',x.shape)
-        # print('x.size(1)', x.size(1))
-        # # print('111',p.shape)
-        
         return x + p
 
     def forward2(self, x, n_person):
@@ -56,13 +48,8 @@ class PositionalEncoding(nn.Module):
         #     p=self.pos_table3[:, :int(x.shape[1]/n_person)].clone().detach()
         #     p=p.repeat(1,n_person,1)
         # else:
-        # print('pos_table2', self.pos_table2.shape)
-        # print('n_person', n_person)
-        # print('x.shape',x.shape)
-        # print('x.shape[1]', x.shape[1])
         p=self.pos_table2[:, :int(x.shape[1]/n_person)].clone().detach()
         p=p.repeat(1,n_person,1)
-        # print(p.shape)
         return x + p
 
 
@@ -83,8 +70,6 @@ class Encoder(nn.Module):
             for _ in range(n_layers)])
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
         self.device=device
-        
-        
     def forward(self, src_seq,n_person, src_mask, return_attns=False, global_feature=False):
         
         enc_slf_attn_list = []
@@ -104,6 +89,8 @@ class Encoder(nn.Module):
 
         if return_attns:
             return enc_output, enc_slf_attn_list
+
+
         return enc_output,
 
 
@@ -159,7 +146,7 @@ class Transformer(nn.Module):
         self.proj2=nn.Linear(45,d_model)
         self.proj_inverse=nn.Linear(d_model,45)
         self.l1=nn.Linear(d_model, d_model*4)
-        self.l2=nn.Linear(d_model*4, d_model*25)
+        self.l2=nn.Linear(d_model*4, d_model*15)
 
         self.dropout = nn.Dropout(p=dropout)
 
@@ -218,31 +205,24 @@ class Transformer(nn.Module):
         return dec_output
 
     
+
     def forward(self, src_seq, trg_seq, input_seq, use=None):
         '''
         src_seq: local
         trg_seq: local
         input_seq: global
         '''
-        # src_seq.shape = (batch*5,24,45)
-        # trg_seq.shape = (batch*5,1,45)
-        # input_seq.shape = (batch,5,25,45)
-        n_person=input_seq.shape[1] # 5
+        n_person=input_seq.shape[1]
 
         #src_mask = (torch.ones([src_seq.shape[0],1,src_seq.shape[1]])==True).to(self.device)
         
         src_seq_=self.proj(src_seq)
-        # print('src_seq after proj:', src_seq_.shape) # batch*5,24/49,d_model=128
         trg_seq_=self.proj2(trg_seq)
-        # print('trg_seq after proj:', trg_seq_.shape) # batch*5,1,d_model=128
-        # quit()
+
         enc_output, *_ = self.encoder(src_seq_, n_person, None)
-        # print('enc_output after encoder', enc_output.shape) # batch*5,24/49,128
+        
         others=input_seq[:,:,:,:].view(input_seq.shape[0],-1,45)
-        # print('others', others.shape) #batch,5*25/50/75,45
         others_=self.proj2(others)
-        # print('others_ after proj2', others_.shape) # batch,5*25/50/75,d_model=128
-        # quit()
         mask_other=None
         mask_dec=None
 
@@ -251,13 +231,9 @@ class Transformer(nn.Module):
         #    mask_other[i][0][:use[i]*15]=1
 
         enc_others,*_=self.encoder_global(others_,n_person, mask_other, global_feature=True)
-        # print('enc_others after encoder_global', enc_others.shape) # batch,5*25/50/75,128
         enc_others=enc_others.unsqueeze(1).expand(input_seq.shape[0],input_seq.shape[1],-1,self.d_model)
-        # print('enc_others after unsqueeze and expand', enc_others.shape) # batch,5,125/250/375,128
-        enc_others=enc_others.reshape(enc_output.shape[0],-1,self.d_model)
-        # print('enc_others after reshape', enc_others.shape) # batch*5,125/250,128
         
-        # quit()
+        enc_others=enc_others.reshape(enc_output.shape[0],-1,self.d_model)
         #mask_other=mask_other.unsqueeze(1).expand(input_seq.shape[0],input_seq.shape[1],1,-1)
         #mask_other=mask_other.reshape(enc_others.shape[0],1,-1)
         #mask_dec=torch.cat([src_mask*1,mask_other.long()],dim=-1)
@@ -275,8 +251,7 @@ class Transformer(nn.Module):
 
         dec_output= self.l1(dec_output)
         dec_output= self.l2(dec_output)
-        # print('dec_output', dec_output.shape)
-        dec_output=dec_output.view(dec_output.shape[0],25,self.d_model)
+        dec_output=dec_output.view(dec_output.shape[0],15,self.d_model)
         
         dec_output=self.proj_inverse(dec_output)
         
@@ -288,7 +263,7 @@ class Discriminator(nn.Module):
     def __init__(
             self, src_pad_idx=1, trg_pad_idx=1,
             d_word_vec=128, d_model=128, d_inner=1024,
-            n_layers=3, n_head=8, d_k=64, d_v=64, dropout=0.2, n_position=100,
+            n_layers=3, n_head=8, d_k=64, d_v=64, dropout=0.2, n_position=50,
             device='cuda'):
 
         super().__init__()
@@ -305,7 +280,6 @@ class Discriminator(nn.Module):
     
     def forward(self, x):
         x, *_ = self.encoder(x,n_person=None, src_mask=None)
-        # print(x.shape)
         x=self.fc(x)
         x=x.view(-1,1)
         return x

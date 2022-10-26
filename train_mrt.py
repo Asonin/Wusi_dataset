@@ -15,7 +15,7 @@ import os
 
 from data import DATA
 dataset = DATA()
-batch_size=64
+batch_size=32
 
 dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
@@ -26,9 +26,6 @@ real_motion_dataloader = torch.utils.data.DataLoader(real_, batch_size=batch_siz
 real_motion_all=list(enumerate(real_motion_dataloader))
 
 device='cuda'
-# os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model = Transformer(d_word_vec=128, d_model=128, d_inner=1024,
             n_layers=3, n_head=8, d_k=64, d_v=64,device=device).to(device)
@@ -56,65 +53,78 @@ for epoch in range(100):
     for j,data in enumerate(dataloader,0):
                 
         use=None
-        input_seq,output_seq=data
-        input_seq=torch.tensor(input_seq,dtype=torch.float32).to(device) # batch, N_person, 15 (15 fps 1 second), 45 (15joints xyz) 
-        # input_seq = input_seq.clone().detach().requires_grad_(True).to(device)
-        
+        input_seq,output_seq=data 
+        # print(batch_size) # currently 1
+        # print('input_seq_ori', input_seq.shape) # 1,5,25,45
+        # print('output_seq_ori', output_seq.shape) # 1,5,76,45
+        # quit()
+        input_seq=torch.tensor(input_seq,dtype=torch.float32).to(device) # batch, N_person, 25 (25 fps 1 second), 45 (15joints xyz) 
         output_seq=torch.tensor(output_seq,dtype=torch.float32).to(device) # batch, N_persons, 46 (last frame of input + future 3 seconds), 45 (15joints xyz) 
-        # output_seq = output_seq.clone().detach().requires_grad_(True).to(device)
         
         # first 1 second predict future 1 second
-        input_=input_seq.view(-1,15,input_seq.shape[-1]) # batch x n_person ,15: 15 fps, 1 second, 45: 15joints x 3
-        
+        input_=input_seq.view(-1,25,input_seq.shape[-1]) # batch x n_person ,25: 25 fps, 1 second, 45: 15joints x 3
+        # print('input_ reshaped', input_.shape) # batch_size*5,25,45
+        # quit()
         output_=output_seq.view(output_seq.shape[0]*output_seq.shape[1],-1,input_seq.shape[-1])
-
+        # print('output_ reshaped', output_.shape) # batch_size*5,76,45
+        
         input_ = dct.dct(input_)
-                
-        rec_=model.forward(input_[:,1:15,:]-input_[:,:14,:],dct.idct(input_[:,-1:,:]),input_seq,use)
-
+        # print('input_ after dct', input_.shape) # batch_size*5,25,45
+        # quit()
+        rec_=model.forward(input_[:,1:25,:]-input_[:,:24,:],dct.idct(input_[:,-1:,:]),input_seq,use)
+        # print('1-1, rec_', rec_.shape) #batch*5,25,45
         rec=dct.idct(rec_)
-
+        # print('1-1, rec_ after idct', rec.shape) # batch*5,25,45
+        # quit()
         # first 2 seconds predict 1 second
-        new_input=torch.cat([input_[:,1:15,:]-input_[:,:14,:],dct.dct(rec_)],dim=-2)
-        
-        new_input_seq=torch.cat([input_seq,output_seq[:,:,1:16]],dim=-2)
-        # print(new_input_seq.shape)
-        new_input_=dct.dct(new_input_seq.reshape(-1,30,45))
-        # print(new_input_.shape)
-        new_rec_=model.forward(new_input_[:,1:,:]-new_input_[:,:29,:],dct.idct(new_input_[:,-1:,:]),new_input_seq,use)
-
+        new_input=torch.cat([input_[:,1:25,:]-input_[:,:24,:],dct.dct(rec_)],dim=-2)
+        # print('2-1, new_input', new_input.shape)
+        new_input_seq=torch.cat([input_seq,output_seq[:,:,1:26]],dim=-2)
+        # print('2-1, new_input_seq', new_input_seq.shape)
+        new_input_=dct.dct(new_input_seq.reshape(-1,50,45))
+        # print('2-1, new_input_seq after dct', new_input_.shape)
+        # # print(new_input_.shape)
+        new_rec_=model.forward(new_input_[:,1:,:]-new_input_[:,:49,:],dct.idct(new_input_[:,-1:,:]),new_input_seq,use)
+        # print('2-1, new_rec_', new_rec_.shape)
         new_rec=dct.idct(new_rec_)
-
+        # print('2-1, new_rec_ after idct', new_rec.shape)
         # first 3 seconds predict 1 second
-        # print(input_seq.shape, output_seq.shape)
-        new_new_input_seq=torch.cat([input_seq,output_seq[:,:,1:31]],dim=-2)
-        # print(new_new_input_seq.shape)
-        new_new_input_=dct.dct(new_new_input_seq.reshape(-1,45,45))
-        new_new_rec_=model.forward(new_new_input_[:,1:,:]-new_new_input_[:,:44,:],dct.idct(new_new_input_[:,-1:,:]),new_new_input_seq,use)
-
+        # # print(input_seq.shape, output_seq.shape)
+        new_new_input_seq=torch.cat([input_seq,output_seq[:,:,1:51]],dim=-2)
+        # print('3-1, new_new_input_seq', new_new_input_seq.shape)
+        # # print(new_new_input_seq.shape)
+        new_new_input_=dct.dct(new_new_input_seq.reshape(-1,75,45))
+        # print('3-1, new_new_input_ after dct', new_new_input_.shape)
+        new_new_rec_=model.forward(new_new_input_[:,1:,:]-new_new_input_[:,:74,:],dct.idct(new_new_input_[:,-1:,:]),new_new_input_seq,use)
+        # print('3-1, new_new_rec_', new_new_rec_.shape)
         new_new_rec=dct.idct(new_new_rec_)
-        
+        # print('3-1, new_new_rec_ after idct', new_new_rec.shape)
+        # # print(rec.shape)
         rec=torch.cat([rec,new_rec,new_new_rec],dim=-2)
+        # print('after 3 preds, rec', rec.shape)
+        # quit()
+        # # print(rec.shape, new_rec.shape, new_new_rec.shape)
         
         results=output_[:,:1,:]
-        for i in range(1,31+15):
+        for i in range(1,51+25):
             results=torch.cat([results,output_[:,:1,:]+torch.sum(rec[:,:i,:],dim=1,keepdim=True)],dim=1)
         results=results[:,1:,:]
-        # print(output_.shape)
-        loss=torch.mean((rec[:,:,:]-(output_[:,1:46,:]-output_[:,:45,:]))**2)
+        # print('results', results.shape)
+        
+        loss=torch.mean((rec[:,:,:]-(output_[:,1:76,:]-output_[:,:75,:]))**2) # offset
         
         
         if (j+1)%2==0:
             
             fake_motion=results
-
+            # print('fake motion', fake_motion.shape)
             disc_loss=disc_l2_loss(discriminator(fake_motion))
             loss=loss+0.0005*disc_loss
             
             fake_motion=fake_motion.detach()
 
             real_motion=real_motion_all[int(j/2)][1][1]
-            real_motion=real_motion.view(-1,46,45)[:,1:46,:].float().to(device)
+            real_motion=real_motion.view(-1,76,45)[:,1:76,:].float().to(device)
 
             fake_disc_value = discriminator(fake_motion)
             real_disc_value = discriminator(real_motion)

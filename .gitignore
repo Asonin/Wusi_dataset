@@ -13,6 +13,8 @@ data_wusi/wusi/
 data_wusi/wusi_nocut/
 data_wusi/data.npy
 data_wusi/*.npy
+data_wusi/test_vis
+data_wusi/3d.mp4
 saved_model_wusi/
 saved_model_wusi_old/
 __pycache__/ 

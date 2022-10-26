@@ -19,7 +19,7 @@ class DATA(data.Dataset):
         # input_seq=self.data[index][:,:30,:][:,::2,:]#input, 30 fps to 15 fps
         # output_seq=self.data[index][:,30:,:][:,::2,:]#output, 30 fps to 15 fps
         input_seq=self.data[index][:,:25,:]#input, 25 fps
-        output_seq=self.data[index][:,25:,:]#output, 25 fps
+        output_seq=self.data[index][:,25:,:]#output, 75 fps
         last_input=input_seq[:,-1:,:]
         output_seq=np.concatenate([last_input,output_seq],axis=1)
         return input_seq,output_seq
@@ -54,7 +54,7 @@ class TESTDATA(data.Dataset):
         # input_seq=self.data[index][:,:30,:][:,::2,:]#input, 30 fps to 15 fps
         # output_seq=self.data[index][:,30:,:][:,::2,:]#output, 30 fps to 15 fps
         input_seq=self.data[index][:,:25,:]#input, 25 fps
-        output_seq=self.data[index][:,25:,:]#output, 25 fps
+        output_seq=self.data[index][:,25:,:]#output, 75 fps
         last_input=input_seq[:,-1:,:]
         output_seq=np.concatenate([last_input,output_seq],axis=1)
         return input_seq,output_seq
