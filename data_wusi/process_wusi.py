@@ -66,9 +66,10 @@ def process_data(stride, sequence_len):
     # print(cnt)
     # print('length', length_calc)
     print(data.shape)
-    save_path = f'data_{sequence_len}_{data.shape[0]}.npy'
+    save_path = f'data_undivided.npy'
     print(save_path)
-    # np.save(save_path,data)
+    np.save(save_path,data)
+    quit()
     return data
 
 
