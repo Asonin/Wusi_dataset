@@ -17,7 +17,8 @@ data_wusi/test_vis
 data_wusi/3d.mp4
 saved_model_wusi/
 saved_model_wusi_old/
-__pycache__/ 
+__pycache__/
 */__pycache__
 /save_results_wusi_79
-/save_results_wusi
+/save_results_wusi_2500
+/save_results_wusi 

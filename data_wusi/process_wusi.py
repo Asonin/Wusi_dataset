@@ -69,7 +69,7 @@ def process_data(stride, sequence_len):
     save_path = f'data_undivided.npy'
     print(save_path)
     np.save(save_path,data)
-    quit()
+    # quit()
     return data
 
 

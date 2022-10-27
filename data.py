@@ -35,10 +35,10 @@ class TESTDATA(data.Dataset):
         
         if dataset=='mocap':
             self.data=np.load('./mocap/test_3_120_mocap.npy',allow_pickle=True)
-        
+            
         if dataset=='wusi':
             self.data=np.load('./data_wusi/test.npy',allow_pickle=True)
-        
+            print(self.data.shape)
             # use=[0,1,2,3,6,7,8,14,16,17,18,20,24,25,27]
             # self.data=self.data
             # self.data=self.data.reshape(self.data.shape[0],self.data.shape[1],-1,31,3)

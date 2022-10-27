@@ -21,6 +21,7 @@ total_length = 0 # total length for all data in frames
 
 root_offset = []
 root_offset_0 = []
+hands_offset= []
 
 
 for i in range(4):
@@ -44,6 +45,13 @@ for i in range(4):
                 xyz = poses[j]
                 # print(xyz.shape)
                 root_pos = xyz[:,0]
+                # hands aligned
+                xyz[:,:,0] = xyz[:,:,0] - np.mean(xyz[:,:,0])
+                xyz[:,:,2] = xyz[:,:,2] - np.mean(xyz[:,:,2])
+                hands_pos1 = xyz[:,11]
+                # hands_pos1[:,0] = hands_pos1[:,0] - np.mean(hands_pos1[:,0])
+                # hands_pos1[:,2] = hands_pos1[:,2] - np.mean(hands_pos1[:,2])
+                hands_pos2 = xyz[:,14]
                 # print(root_pos.shape)
                 # quit()
                 for k in range(1,root_pos.shape[0]):
@@ -54,6 +62,11 @@ for i in range(4):
                     # print(root_off_0)
                     root_offset.append(root_off)
                     root_offset_0.append(root_off_0)
+                    
+                    hands1_off= np.sqrt(np.sum((hands_pos1[k] - hands_pos1[k-1])**2))
+                    hands2_off = np.sqrt(np.sum((hands_pos2[k] - hands_pos2[0])**2))
+                    hands_offset.append(hands1_off)
+                    hands_offset.append(hands2_off)
                     # quit()
                 # for k in range(poses.shape[1]): # every frame
                 #     xyz = poses[j][k]
@@ -63,11 +76,15 @@ for i in range(4):
             
             
 part = plt.violinplot(root_offset,showmedians=True)
-filename = './root_offset.jpg'
+filename = './root_offset_mocap.jpg'
 plt.savefig(filename)         
 plt.close()
 part = plt.violinplot(root_offset_0,showmedians=True)
-filename = './root_offset_0.jpg'
+filename = './root_offset_0_mocap.jpg'
+plt.savefig(filename)         
+plt.close()
+part = plt.violinplot(hands_offset,showmedians=True)
+filename = './hands_velocity_aligned_mocap.jpg'
 plt.savefig(filename)         
 plt.close()
             # quit()
