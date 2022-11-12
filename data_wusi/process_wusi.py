@@ -68,7 +68,7 @@ def process_data(stride, sequence_len):
     print(data.shape)
     save_path = f'data_undivided.npy'
     print(save_path)
-    np.save(save_path,data)
+    # np.save(save_path,data)
     # quit()
     return data
 
@@ -95,8 +95,8 @@ def divide_data(ori_data, ratio):
     # print(data.shape)
     data=data.reshape(data.shape[0],5,-1,45)
     print('tarining set length = ',data.shape)
-    np.save(f'training.npy',data)
-    np.save(f'discriminator.npy',data)
+    # np.save(f'training.npy',data)
+    # np.save(f'discriminator.npy',data)
 
     # quit()
     # ###########################################################################
@@ -117,7 +117,7 @@ def divide_data(ori_data, ratio):
     # print(data[0,0,0,:,2])
     data = data.reshape(data.shape[0],5,-1,45)
     print('testing set length = ',data.shape)
-    np.save(f'test.npy',data)
+    # np.save(f'test.npy',data)
     
 
 
@@ -130,5 +130,21 @@ if __name__ == '__main__':
     parser.add_argument('--ratio', type=float, default='0.5')
     args = parser.parse_args()
     print(args.stride, args.sequence_len)
-    data = process_data(args.stride, args.sequence_len)
-    divide_data(data, args.ratio)
+    f= open("record_dataset.txt", "w")
+    
+    for stride in range(25,75,25):
+        for sequence_len in range(50,100,25):
+            for ratio in range(20,100):
+                ratio = float(ratio)/ 100.0
+                print(ratio)
+                # quit()
+                if stride > sequence_len:
+                    continue
+                data = process_data(stride, sequence_len)
+                divide_data(data, ratio)
+                training_len = int(data.shape[0]*ratio)
+                f.write(f'stride = {stride}, sequence_len = {sequence_len}, ratio = {ratio}, data.shape = {data.shape}, training_len = {training_len}\n')
+    
+    f.close()
+    # data = process_data(args.stride, args.sequence_len)
+    # divide_data(data, args.ratio)

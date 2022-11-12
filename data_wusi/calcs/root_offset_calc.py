@@ -67,9 +67,9 @@ for i in range(2):
                     
                     hands1_off= np.sqrt(np.sum((hands_pos1[k] - hands_pos1[k-1])**2))
                     hands2_off = np.sqrt(np.sum((hands_pos2[k] - hands_pos2[0])**2))
-                    hands1_off /= 1000
-                    hands2_off /= 1000
-                    print(hands1_off)
+                    hands1_off = hands1_off*25/(1000*15)
+                    hands2_off = hands2_off*25/(1000*15)
+                    # print(hands1_off)
                     # print(root_off)
                     # print(root_off_0)
                     root_offset.append(root_off)

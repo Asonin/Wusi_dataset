@@ -23,8 +23,9 @@ device='cpu'
 batch_size=32
 model = Transformer(d_word_vec=128, d_model=128, d_inner=1024,
             n_layers=3, n_head=8, d_k=64, d_v=64,device=device).to(device)
-plot=True
-gt=True
+plot=False
+
+gt=False
 model.load_state_dict(torch.load('./saved_model_wusi/99.model',map_location=device)) 
 
 body_edges = np.array(
@@ -37,6 +38,14 @@ total_loss=0
 loss_list1=[]
 loss_list2=[]
 loss_list3=[]
+
+aligned_loss_list1 = []
+aligned_loss_list2 = []
+aligned_loss_list3 = []
+
+root_loss_list1=[]
+root_loss_list2=[]
+root_loss_list3=[]
 
 base_dir = 'save_results_wusi/'
 if not os.path.exists(base_dir):
@@ -114,7 +123,9 @@ with torch.no_grad():
             results=torch.cat([results,output_[:,:1,:]+torch.sum(rec[:,:i,:],dim=1,keepdim=True)],dim=1)
         results=results[:,1:,:]
         
-        prediction_1=results[:,:25,:].view(results.shape[0],-1,n_joints,3)
+        prediction_1=results[:,:25,:].view(results.shape[0],-1,n_joints,3) #people, frames, 15, 3
+        # print(prediction_1.shape)
+        # quit()
         prediction_2=results[:,:50,:].view(results.shape[0],-1,n_joints,3)
         prediction_3=results[:,:75,:].view(results.shape[0],-1,n_joints,3)
 
@@ -129,9 +140,9 @@ with torch.no_grad():
             loss3=torch.sqrt(((prediction_3/1.8 - gt_3/1.8) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
 
             #pose with align
-            # loss1=torch.sqrt((((prediction_1 - prediction_1[:,:,0:1,:] - gt_1 + gt_1[:,:,0:1,:])/1.8) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
-            # loss2=torch.sqrt((((prediction_2 - prediction_2[:,:,0:1,:] - gt_2 + gt_2[:,:,0:1,:])/1.8) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
-            # loss3=torch.sqrt((((prediction_3 - prediction_3[:,:,0:1,:] - gt_3 + gt_3[:,:,0:1,:])/1.8) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            loss1=torch.sqrt((((prediction_1 - prediction_1[:,:,0:1,:] - gt_1 + gt_1[:,:,0:1,:])/1.8) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            loss2=torch.sqrt((((prediction_2 - prediction_2[:,:,0:1,:] - gt_2 + gt_2[:,:,0:1,:])/1.8) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            loss3=torch.sqrt((((prediction_3 - prediction_3[:,:,0:1,:] - gt_3 + gt_3[:,:,0:1,:])/1.8) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
 
         if dataset_name=='mupots':
             loss1=torch.sqrt(((prediction_1 - gt_1) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
@@ -139,18 +150,39 @@ with torch.no_grad():
             loss3=torch.sqrt(((prediction_3 - gt_3) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
             
             #pose with align
-            # loss1=torch.sqrt(((prediction_1 - prediction_1[:,:,0:1,:] - gt_1 + gt_1[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
-            # loss2=torch.sqrt(((prediction_2 - prediction_2[:,:,0:1,:] - gt_2 + gt_2[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
-            # loss3=torch.sqrt(((prediction_3 - prediction_3[:,:,0:1,:] - gt_3 + gt_3[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            loss1=torch.sqrt(((prediction_1 - prediction_1[:,:,0:1,:] - gt_1 + gt_1[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            loss2=torch.sqrt(((prediction_2 - prediction_2[:,:,0:1,:] - gt_2 + gt_2[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            loss3=torch.sqrt(((prediction_3 - prediction_3[:,:,0:1,:] - gt_3 + gt_3[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
 
         if dataset_name == 'wusi':
             loss1=torch.sqrt(((prediction_1 - gt_1) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
             loss2=torch.sqrt(((prediction_2 - gt_2) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
             loss3=torch.sqrt(((prediction_3 - gt_3) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            
+            #pose with align
+            aligned_loss1=torch.sqrt(((prediction_1 - prediction_1[:,:,0:1,:] - gt_1 + gt_1[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            aligned_loss2=torch.sqrt(((prediction_2 - prediction_2[:,:,0:1,:] - gt_2 + gt_2[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            aligned_loss3=torch.sqrt(((prediction_3 - prediction_3[:,:,0:1,:] - gt_3 + gt_3[:,:,0:1,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            
+            root_loss1=torch.sqrt(((prediction_1[:,:,0,:] - gt_1[:,:,0,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            # print(root_loss1)
+            root_loss2=torch.sqrt(((prediction_2[:,:,0,:] - gt_2[:,:,0,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            # print(root_loss2)
+            root_loss3=torch.sqrt(((prediction_3[:,:,0,:] - gt_3[:,:,0,:]) ** 2).sum(dim=-1)).mean(dim=-1).mean(dim=-1).numpy().tolist()
+            
+
         
         loss_list1.append(np.mean(loss1))#+loss1
         loss_list2.append(np.mean(loss2))#+loss2
         loss_list3.append(np.mean(loss3))#+loss3
+        
+        aligned_loss_list1.append(np.mean(aligned_loss1))#+loss1
+        aligned_loss_list2.append(np.mean(aligned_loss2))#+loss2
+        aligned_loss_list3.append(np.mean(aligned_loss3))#+loss3
+        
+        root_loss_list1.append(np.mean(root_loss1))#+loss1
+        root_loss_list2.append(np.mean(root_loss2))#+loss2
+        root_loss_list3.append(np.mean(root_loss3))#+loss3
         
         loss=torch.mean((rec[:,:,:]-(output_[:,1:76,:]-output_[:,:75,:]))**2)
         losses.append(loss)
@@ -284,4 +316,10 @@ with torch.no_grad():
     print('avg 2 seconds',np.mean(loss_list2))
     print('avg 3 seconds',np.mean(loss_list3))
     
+    print('avg 1 second aligned',np.mean(aligned_loss_list1))
+    print('avg 2 seconds aligned',np.mean(aligned_loss_list2))
+    print('avg 3 seconds aligned',np.mean(aligned_loss_list3))
     
+    print('avg 1 second root',np.mean(root_loss_list1))
+    print('avg 2 seconds root',np.mean(root_loss_list2))
+    print('avg 3 seconds root',np.mean(root_loss_list3))
