@@ -22,3 +22,9 @@ __pycache__/
 /save_results_wusi_79
 /save_results_wusi_2500
 /save_results_wusi 
+/data_wusi/calcs/distribution
+/data_wusi/calcs/intensity
+/data_wusi/calcs/offset
+/data_wusi/calcs/ori
+/mocap/mocap_calcs/mocap_distribution
+/mocap/mocap_calcs/*.jpg
