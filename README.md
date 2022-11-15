@@ -1,75 +1,42 @@
-# MRT
+# DATA_WUSI
 
-This is an implementation of the NeurIPS'21 paper "Multi-Person 3D Motion Prediction with Multi-Range Transformers".
+This is a new dataset containing 5 people of high level of interaction. The whole dataset runs under frame rate 25.
 
-Please check our [paper](https://arxiv.org/pdf/2111.12073.pdf) and the [project webpage](https://jiashunwang.github.io/MRT/) for more details. 
+Please check our  and the [project webpage](https://github.com/Asonin/MRT) for more details. 
 
-We will also provide the code to fit our skeleton representation data to [SMPL](https://smpl.is.tue.mpg.de/) data.
+This is a temporal repo for the newly proposed dataset.
+The paper will be soon arXiv. 
 
-## Citation
-
-If you find our code or paper useful, please consider citing:
-```
-@article{wang2021multi,
-  title={Multi-Person 3D Motion Prediction with Multi-Range Transformers},
-  author={Wang, Jiashun and Xu, Huazhe and Narasimhan, Medhini and Wang, Xiaolong},
-  journal={Advances in Neural Information Processing Systems},
-  volume={34},
-  year={2021}
-}
-```
 
 ## Dependencies
 
 Requirements:
-- python3.6
-- pytorch==1.1.0
-- [torch_dct](https://github.com/zh217/torch-dct)
-- [AMCParser](https://github.com/CalciferZh/AMCParser)
+None
 
 ## Datasets
-We provide the data preprocessing code of [CMU-Mocap](http://mocap.cs.cmu.edu/) and [MuPoTS-3D](http://vcai.mpi-inf.mpg.de/projects/SingleShotMultiPerson/) (others are coming soon). 
-For CMU-Mocap, the dictionary tree is like
+We provide the data preprocessing code of [data_wusi](https://github.com/Asonin/MRT).
+For data_wusi, the dictionary tree is like
 ``` 
-   mocap
-   ├── amc_parser.py
-   ├── mix_mocap.py
-   ├── preprocess_mocap.py
-   ├── vis.py
-   └── all_asfamc
-       └── subjects
-           ├── 01
-           ...
-```
-After dowloading the original data, please try
-```
-python ./mocap/preprocess_mocap.py
-python ./mocap/mix_mocap.py
-```
-For MuPoTS-3D, the dictionary tree is like
-``` 
-   mupots3d
-   ├── preprocess_mupots.py
-   ├── vis.py
-   └── data
-       ├── TS1
-       ...
-```
-After dowloading the original data, please try
-```
-python ./mocap/preprocess_mupots.py
-```
- 
-## Training
-To train our model, please try
-```
-python train_mrt.py
+   data_wusi
+   ├── post
+   ├── wusi
+   |   └──1021_1_
+   |   ...
+   ├── wusi_nocut
+   |   └──1009_2
+   |   ...
+   ├── data.py
+   ├── mix_wusi.py
+   ├── process_wusi.py
+   ├── README.md
 ```
 
-## Evaluation and visualization
-We provide the evaluation and visualization code in `test.py`
+## process_wusi.py
+This script reads the raw data and cut them up into sequences, you can specify the sequence length by argument _sequence_len_ and stride by the argument _stride_. 
+After processing the raw data, it shall tell you the sequence number and sequence length. Then, processed data will be divided into training and testing set. You could specify the ratio of training dataset by argument _ratio_, the remaining should automatically become test set.
 
-## Acknowledgement
-This work was supported, in part, by grants from DARPA LwLL, NSF CCF-2112665 (TILOS), NSF 1730158 CI-New: Cognitive Hardware and Software Ecosystem Community Infrastructure (CHASE-CI), NSF ACI-1541349 CC\*DNI Pacific Research Platform, and gifts from Qualcomm, TuSimple and Picsart.
-Part of our code is based on [attention-is-all-you-need-pytorch](https://github.com/jadore801120/attention-is-all-you-need-pytorch) and [AMCParser](https://github.com/CalciferZh/AMCParser). Many thanks!
+### Enter folder data_wusi/, please then try
+```
+python precess_wusi.py --stride=[your stride] --sequence_len=[your sequence len] --ratio=[your ratio]
+```
 

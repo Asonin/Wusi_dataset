@@ -10,7 +10,7 @@ colors = ['b', 'g', 'c', 'y', 'm', 'orange', 'pink', 'royalblue', 'lightgreen', 
 data=np.load('training.npy',allow_pickle=True)
 print(data.shape)
 # quit()
-eg=1
+eg=100
 data_list=data[eg]
 
 # quit()
