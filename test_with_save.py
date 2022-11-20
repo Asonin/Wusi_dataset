@@ -21,7 +21,7 @@ model = Transformer(d_word_vec=128, d_model=128, d_inner=1024,
             n_layers=3, n_head=8, d_k=64, d_v=64,device=device).to(device)
 plot=True
 gt=True
-model.load_state_dict(torch.load('./saved_model/39_d.model',map_location=device)) 
+model.load_state_dict(torch.load('./saved_model/99_d.model',map_location=device)) 
 
 body_edges = np.array(
 [[0,1], [1,2],[2,3],[0,4],

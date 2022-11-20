@@ -2,11 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-data=np.load('two_train_4seconds_2.npy',allow_pickle=True)
+data=np.load('test_3_120_mocap.npy',allow_pickle=True)
+print(data.shape)
 eg=1
 data_list=data[eg]
 
-data_list=data_list.reshape(-1,120,31,3)
+data_list=data_list.reshape(-1,120,15,3)
 data_list=data_list*0.1*1.8/3 # scale
 #no need to scale if using the mix_mocap data
 

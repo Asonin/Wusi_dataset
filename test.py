@@ -15,7 +15,7 @@ import os
 
 from data import TESTDATA
 
-dataset_name='mupots'
+dataset_name='mocap'
 
 test_dataset = TESTDATA(dataset=dataset_name)
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
@@ -35,7 +35,7 @@ plot=False
 gt=False
 
 
-model.load_state_dict(torch.load('./saved_model/29.model',map_location=device)) 
+model.load_state_dict(torch.load('./saved_model/29_d.model',map_location=device)) 
 
 
 body_edges = np.array(

@@ -35,6 +35,7 @@ class TESTDATA(data.Dataset):
         
         if dataset=='mocap':
             self.data=np.load('./mocap/test_3_120_mocap.npy',allow_pickle=True)
+            print('loading mocap')
             
         if dataset=='wusi':
             self.data=np.load('./data_wusi/test.npy',allow_pickle=True)
